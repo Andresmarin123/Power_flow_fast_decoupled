@@ -1,4 +1,4 @@
-function [Bi,Bii,P_given,Q_given,delta_P,delta_Q,delta_P_diV,delta_Q_diV]=power_flow(itemax,tol,buses,linea)
+function [V0]=power_flow(itemax,tol,buses,linea)
     Ybus=ybus(linea);
     Y=abs(Ybus);
     [nY, ~] = size(Y);
@@ -68,11 +68,18 @@ function [Bi,Bii,P_given,Q_given,delta_P,delta_Q,delta_P_diV,delta_Q_diV]=power_
             delta_Q_diV(i,1)=delta_Q(i,1)/V0(k1,1);
         end
 
-        A1=Bi;
-        A2=Bii;
-        b1=delta_P_diV;
-        b2=delta_Q_diV;
-        Angulos=factorizacion_matriz(A1,b1);
-        Voltajes=factorizacion_matriz(A2,b2);
+        delta_ang=factorizacion_matriz(Bi,delta_P_diV);
+        delta_V=factorizacion_matriz(Bii,delta_Q_diV);
+        
+        for i=1:n
+            k1=km1(i);
+            V0(k1,1)=V0(k1,1)+delta_V(i,1);
+        end
+        for i=1:m
+            k2=km2(i);
+            V0(k2,2)=V0(k2,2)+delta_ang(i,1);
+        end
+        
     end
+    V0(:,2)=rad2deg(V0(:,2));
 end
