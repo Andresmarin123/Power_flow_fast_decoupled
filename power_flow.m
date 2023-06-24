@@ -1,5 +1,8 @@
-function [Bi,Bii,P_given,Q_given,delta_P,delta_Q,X1,X2]=power_flow(itemax,tol,buses,linea)
+function [Y,Bi,Bii,P_given,Q_given,delta_P,delta_Q,X1,X2,P_calculated,Q_calculated]=power_flow(itemax,tol,buses,linea)
     Ybus=ybus(linea);
+    Y=abs(Ybus);
+    [nY, ~] = size(Y);
+    Y(~logical(eye(nY)))=-abs(Y(~logical(eye(nY))));
     G=real(Ybus);
     B=imag(Ybus);
     ang=atan(B./G);
@@ -31,25 +34,28 @@ function [Bi,Bii,P_given,Q_given,delta_P,delta_Q,X1,X2]=power_flow(itemax,tol,bu
     %Calculo de las potencias dadas del problema
     for q=1:n
         k1=km1(q);
-        P_given(q,:)=buses(k1,4)-buses(k1,6);
+        P_given(q,:)=(buses(k1,4)-buses(k1,6))/100; %division entre 100 para que sea p.u.
     end
     for p=1:m
         k2=km2(p);
-        Q_given(p,:)=buses(k2,5)-buses(k2,7);
+        Q_given(p,:)=(buses(k2,5)-buses(k2,7))/100;
     end
     %Potencias calculadas
     for i=1:n
         P_calculated(i,1)=0;
-        for q=1:n
+        for q=1:nY
             k1=km1(i);
-            P_calculated(i,1)=P_calculated(i,1)+V0(k1,1)*V0(i,1)*abs(Ybus(i,k1))*cos(ang(i,k1)-V0(k1,2)-V0(i,2));
+            auxp=V0(k1,1)*V0(q,1)*(G(k1,q)*cos(V0(k1,2)-V0(q,2))+B(k1,q)*sin(V0(k1,2)-V0(q,2)))
+            P_calculated(i,1)=P_calculated(i,1)+V0(k1,1)*V0(q,1)*(G(k1,q)*cos(V0(k1,2)-V0(q,2))+B(k1,q)*sin(V0(k1,2)-V0(q,2)))
+            %P_calculated(i,1)=P_calculated(i,1)+V0(k1,1)*V0(i,1)*Y(i,k1)*cos(ang(i,k1)-V0(k1,2)-V0(i,2));
         end
     end
     for i=1:m
         Q_calculated(i,1)=0;
-        for p=1:m
+        for p=1:nY
             k2=km2(i);
-            Q_calculated(p,1)=Q_calculated(i,1)-V0(k2,1)*V0(i,1)*abs(Ybus(i,k2))*sin(ang(i,k2)-V0(k2,2)-V0(i,2));
+            Q_calculated(i,1)=Q_calculated(i,1)+V0(k2,1)*V0(p,1)*(G(k2,p)*cos(V0(k2,2)-V0(p,2))+B(k2,p)*sin(V0(k2,2)-V0(p,2)));
+            %Q_calculated(p,1)=Q_calculated(i,1)-V0(k2,1)*V0(i,1)*Y(i,k2)*sin(ang(i,k2)-V0(k2,2)-V0(i,2));
         end
     end
     delta_P=P_given-P_calculated;
