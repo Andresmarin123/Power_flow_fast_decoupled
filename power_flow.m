@@ -45,8 +45,7 @@ function [Y,Bi,Bii,P_given,Q_given,delta_P,delta_Q,X1,X2,P_calculated,Q_calculat
         P_calculated(i,1)=0;
         for q=1:nY
             k1=km1(i);
-            auxp=V0(k1,1)*V0(q,1)*(G(k1,q)*cos(V0(k1,2)-V0(q,2))+B(k1,q)*sin(V0(k1,2)-V0(q,2)))
-            P_calculated(i,1)=P_calculated(i,1)+V0(k1,1)*V0(q,1)*(G(k1,q)*cos(V0(k1,2)-V0(q,2))+B(k1,q)*sin(V0(k1,2)-V0(q,2)))
+            P_calculated(i,1)=P_calculated(i,1)+V0(k1,1)*V0(q,1)*(G(k1,q)*cos(V0(k1,2)-V0(q,2))+B(k1,q)*sin(V0(k1,2)-V0(q,2)));
             %P_calculated(i,1)=P_calculated(i,1)+V0(k1,1)*V0(i,1)*Y(i,k1)*cos(ang(i,k1)-V0(k1,2)-V0(i,2));
         end
     end
@@ -54,7 +53,8 @@ function [Y,Bi,Bii,P_given,Q_given,delta_P,delta_Q,X1,X2,P_calculated,Q_calculat
         Q_calculated(i,1)=0;
         for p=1:nY
             k2=km2(i);
-            Q_calculated(i,1)=Q_calculated(i,1)+V0(k2,1)*V0(p,1)*(G(k2,p)*cos(V0(k2,2)-V0(p,2))+B(k2,p)*sin(V0(k2,2)-V0(p,2)));
+            auxQ=V0(k2,1)*V0(p,1)*(G(k2,p)*sin(V0(k2,2)-V0(p,2))-B(k2,p)*cos(V0(k2,2)-V0(p,2)))
+            Q_calculated(i,1)=Q_calculated(i,1)+V0(k2,1)*V0(p,1)*(G(k2,p)*sin(V0(k2,2)-V0(p,2))-B(k2,p)*cos(V0(k2,2)-V0(p,2)))
             %Q_calculated(p,1)=Q_calculated(i,1)-V0(k2,1)*V0(i,1)*Y(i,k2)*sin(ang(i,k2)-V0(k2,2)-V0(i,2));
         end
     end
