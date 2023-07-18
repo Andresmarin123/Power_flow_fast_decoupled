@@ -1,8 +1,7 @@
-function [V0]=power_flow(itemax,tol,buses,linea)
+function [V0,i]=power_flow(itemax,tol,buses,linea)
     Ybus=ybus(linea);
     Y=abs(Ybus);
     [nY, ~] = size(Y);
-    %Y(~logical(eye(nY)))=-abs(Y(~logical(eye(nY))));
     G=real(Ybus);
     B=imag(Ybus);
     ang=atan(B./G);
@@ -30,6 +29,8 @@ function [V0]=power_flow(itemax,tol,buses,linea)
             Bii(q,p)=-B(k2,m2);
         end
     end
+    
+    
     for h=1:itemax
         %Calculo de las potencias dadas del problema
         for q=1:n
@@ -46,7 +47,6 @@ function [V0]=power_flow(itemax,tol,buses,linea)
             for q=1:nY
                 k1=km1(i);
                 P_calculated(i,1)=P_calculated(i,1)+V0(k1,1)*V0(q,1)*(G(k1,q)*cos(V0(k1,2)-V0(q,2))+B(k1,q)*sin(V0(k1,2)-V0(q,2)));
-                %P_calculated(i,1)=P_calculated(i,1)+V0(k1,1)*V0(i,1)*Y(i,k1)*cos(ang(i,k1)-V0(k1,2)-V0(i,2));
             end
         end
         for i=1:m
@@ -54,11 +54,15 @@ function [V0]=power_flow(itemax,tol,buses,linea)
             for p=1:nY
                 k2=km2(i);
                 Q_calculated(i,1)=Q_calculated(i,1)+V0(k2,1)*V0(p,1)*(G(k2,p)*sin(V0(k2,2)-V0(p,2))-B(k2,p)*cos(V0(k2,2)-V0(p,2)));
-                %Q_calculated(p,1)=Q_calculated(i,1)-V0(k2,1)*V0(i,1)*Y(i,k2)*sin(ang(i,k2)-V0(k2,2)-V0(i,2));
             end
         end
         delta_P=P_given-P_calculated;
         delta_Q=Q_given-Q_calculated;
+        if max(delta_P)<tol
+            if max(delta_Q)<tol
+            break
+            end
+        end
         for i=1:n
             k1=km1(i);
             delta_P_diV(i,1)=delta_P(i,1)/V0(k1,1);
@@ -71,12 +75,12 @@ function [V0]=power_flow(itemax,tol,buses,linea)
         delta_ang=factorizacion_matriz(Bi,delta_P_diV);
         delta_V=factorizacion_matriz(Bii,delta_Q_diV);
         
-        for i=1:n
-            k1=km1(i);
+        for i=1:m
+            k1=km2(i);
             V0(k1,1)=V0(k1,1)+delta_V(i,1);
         end
-        for i=1:m
-            k2=km2(i);
+        for i=1:n
+            k2=km1(i);
             V0(k2,2)=V0(k2,2)+delta_ang(i,1);
         end
         

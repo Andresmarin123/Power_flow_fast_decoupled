@@ -1,4 +1,4 @@
-function Y=ybus(datos)
+function [Y,yq]=ybus(datos)
     a=size(datos);
     i=1;
 
@@ -27,4 +27,15 @@ function Y=ybus(datos)
         i=i+1;
     end
     Y=A'*Yprim*A;
+    yq=zeros(length(Y));
+    
+    for i=1:length(datos) 
+        yq(real(datos(i,2)),real(datos(i,3)))=datos(i,5);
+        yq(real(datos(i,3)),real(datos(i,2)))=yq(real(datos(i,2)),real(datos(i,3)));
+    end
+    for i=1:length(Y)
+        yd(i,i)=sum(yq(i,:));
+    end
+    Y=Y+yd;
+    
 end
